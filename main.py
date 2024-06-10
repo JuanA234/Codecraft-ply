@@ -1,5 +1,5 @@
-from tests.lexico import lexer
-from tests.sintax import parser, variables
+from lexico import lexer
+from sintax import parser, variables
 
 source_code = '''
 bloque numero1 = 7;
@@ -24,9 +24,11 @@ pasoHelado decimal2 = 7.14;
 pasoHelado sumaDecimal = decimal1 + decimal2;
 bloque numerin = 0;
 
+decimal1 = 2.3;
+
 si (sumaDecimal > 5):
     numerin = 1;
-sino (sumaDecimal = 5):
+sino (sumaDecimal == 5):
     numerin = 2;
 contrario:
     numerin = 3;
@@ -49,5 +51,5 @@ for token in lexer:
 data = "3 + 4 * (2 - 1)"
 
 # Ejecutar el parser
-print(parser.parse(source_code))
+print(parser.parse(source_code2))
 print(variables)

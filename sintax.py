@@ -1,7 +1,6 @@
 import ply.yacc as yacc
-from tests.lexico import tokens
+from lexico import tokens
 
-# Entorno de variables
 variables = {}
 
 # Definir la precedencia de los operadores
@@ -31,7 +30,9 @@ def p_statement(p):
     '''statement : declaration
                  | assignment
                  | conditional
-                 | loop
+                 | conditional_else
+                 | loop_while
+                 | loop_for
                  | expression FIN_SENTENCIA'''
     p[0] = p[1]
 
@@ -43,6 +44,8 @@ def p_declaration(p):
     variables[p[2]] = p[4]
     p[0] = None
 
+
+
 def p_assignment(p):
     '''assignment : IDENTIFICADOR IGUAL expression FIN_SENTENCIA'''
     if p[1] in variables:
@@ -51,24 +54,49 @@ def p_assignment(p):
         print(f"Error: Variable {p[1]} no declarada")
     p[0] = None
 
+
+
 def p_conditional(p):
     '''conditional : CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list
-                   | CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list CONDICIONAL_SINO DOS_PUNTOS statement_list'''
+                   | CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list conditional_else'''
     if p[3]:
         for stmt in p[6]:
             eval_statement(stmt)
-    elif len(p) == 10:
-        for stmt in p[9]:
+    elif p[8]:
+        for stmt in p[8]:
             eval_statement(stmt)
-    p[0] = None
+    else:
+        for stmt in p[10]:
+            eval_statement(stmt)
 
-def p_loop(p):
-    '''loop : CICLO_WHILE PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list'''
+def p_conditional_else(p):
+    '''conditional_else : CONDICIONAL_SINO PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list
+                        | CONDICIONAL_CONTRARIO DOS_PUNTOS statement_list'''
+    p[0] = p[3]
+
+def p_loop_while(p):
+    '''loop_while : CICLO_WHILE PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list'''
     while p[3]:
         for stmt in p[6]:
             eval_statement(stmt)
         p[3] = p[3]  # Re-evaluar la condición después de cada iteración
     p[0] = None
+
+def p_loop_for(p):
+    '''loop_for :  CICLO_FOR PAREN_IZQUIERDO for_init FIN_SENTENCIA expression FIN_SENTENCIA for_update PAREN_DERECHO DOS_PUNTOS statement_list'''
+    for _ in range(variables[p[3]]):
+        if p[5]:
+            p[9]
+
+def p_for_init(p):
+    '''for_init : declaration
+                | assignment'''
+    p[0] = p[1]
+
+def p_for_update(p):
+    '''for_update : assignment'''
+    p[0] = p[1]
+
 
 def p_expression_binop(p):
     '''expression : expression SUMA expression
@@ -164,6 +192,6 @@ mientrasNoDiamante(comprobacion != True):
         comprobacion = True;
 '''
 
-result = parser.parse(data)
-print(result)
-print(variables)  # Imprimir el entorno de variables para verificar los resultados
+#result = parser.parse(data)
+#print(result)
+#print(variables)  # Imprimir el entorno de variables para verificar los resultados

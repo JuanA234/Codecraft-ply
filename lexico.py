@@ -39,7 +39,10 @@ reserved = {
     'minarPara': 'CICLO_FOR',
     'mientrasNoDiamante': 'CICLO_WHILE',
     'picoRoto': 'ESTRUCTURA_BREAK',
-    'seguirPicando': 'ESTRUCTURA_CONTINUE'
+    'seguirPicando': 'ESTRUCTURA_CONTINUE',
+    'imprimir' : 'IMPRIMIR',
+    'in': 'IN',
+    'range': 'RANGE'
 }
 
 tokens += list(reserved.values())
