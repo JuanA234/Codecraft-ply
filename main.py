@@ -49,5 +49,5 @@ for token in lexer:
 data = "3 + 4 * (2 - 1)"
 
 # Ejecutar el parser
-print(parser.parse(source_code2))
+print(parser.parse(source_code))
 print(variables)

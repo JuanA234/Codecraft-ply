@@ -141,7 +141,7 @@ def eval_statement(stmt):
             for s in stmt:
                 eval_statement(s)
         else:
-            eval(stmt)
+            exec(stmt)
 
 # Construir el parser
 parser = yacc.yacc()
@@ -164,6 +164,6 @@ mientrasNoDiamante(comprobacion != True):
         comprobacion = True;
 '''
 
-#result = parser.parse(data)
-#print(result)
-#print(variables)  # Imprimir el entorno de variables para verificar los resultados
+result = parser.parse(data)
+print(result)
+print(variables)  # Imprimir el entorno de variables para verificar los resultados
