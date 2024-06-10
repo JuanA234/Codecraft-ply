@@ -1,55 +1,25 @@
-from lexico import lexer
-from sintax import parser, variables
 
-source_code = '''
-bloque numero1 = 7;
-bloque numero2 = 5;
-bloque suma = numero1 + numero2;
-hiloRedstone sumastring = "La suma de los numeros es: " + suma;
+from sintax import parser
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
+import json
 
-booleanman comprobacion = False; 
+app = Flask(__name__)
+CORS(app)  # Aplica CORS a toda la aplicación
 
-si (suma > 10): 
-    comprobacion = True;
+@app.route('/')
 
-mientrasNoDiamante(comprobacion != True):  
-    suma = suma + 1;
-    si (suma > 10):
-        comprobacion = True;
-'''
+def start():
+    return render_template('index.html')
 
-source_code2 = '''
-pasoHelado decimal1 = 1.13; 
-pasoHelado decimal2 = 7.14;
-pasoHelado sumaDecimal = decimal1 + decimal2;
-bloque numerin = 0;
 
-decimal1 = 2.3;
-
-si (sumaDecimal > 5):
-    numerin = 1;
-sino (sumaDecimal == 5):
-    numerin = 2;
-contrario:
-    numerin = 3;
-
-bloque sumaFor = 0;
-minarPara i in range(5):
-    sumaFor = sumaFor + i;
-'''
-
-# Ejecutar el lexer
-
-'''lexer.input(source_code)
-print("Tokens:")
-for token in lexer:
-    print(token)'''
+@app.route('/codecraft', methods=['POST'])
+def main(): 
+   
+    content = request.json['content']
+    return json.dumps(parser.parse(content))
 
 
 
-
-data = "3 + 4 * (2 - 1)"
-
-# Ejecutar el parser
-print(parser.parse(source_code2))
-print(variables)
+if __name__ == '__main__':
+    app.run(debug=True)

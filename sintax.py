@@ -3,6 +3,8 @@ from lexico import tokens
 
 variables = {}
 
+
+
 # Definir la precedencia de los operadores
 precedence = (
     ('left', 'SUMA', 'RESTA'),
@@ -26,6 +28,7 @@ def p_statement_list(p):
     else:
         p[0] = p[1] + [p[2]]
 
+
 def p_statement(p):
     '''statement : declaration
                  | assignment
@@ -33,8 +36,17 @@ def p_statement(p):
                  | conditional_else
                  | loop_while
                  | loop_for
+                 | imprimir
                  | expression FIN_SENTENCIA'''
     p[0] = p[1]
+
+
+
+def p_imprimir(p):
+    'imprimir : IMPRIMIR PAREN_IZQUIERDO expression PAREN_DERECHO FIN_SENTENCIA'
+    print(p[3])
+
+
 
 def p_declaration(p):
     '''declaration : DECLARACION_ENTERO IDENTIFICADOR IGUAL expression FIN_SENTENCIA
@@ -57,22 +69,31 @@ def p_assignment(p):
 
 
 def p_conditional(p):
-    '''conditional : CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list
-                   | CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list conditional_else'''
+    '''conditional : CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list conditional_else
+                   | CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list'''
     if p[3]:
         for stmt in p[6]:
             eval_statement(stmt)
-    elif p[8]:
-        for stmt in p[8]:
-            eval_statement(stmt)
-    else:
-        for stmt in p[10]:
+    elif len(p) == 8 and p[7] is not None:
+        for stmt in p[7]:
             eval_statement(stmt)
 
 def p_conditional_else(p):
-    '''conditional_else : CONDICIONAL_SINO PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list
+    '''conditional_else : CONDICIONAL_SINO PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list conditional_else
+                        | CONDICIONAL_SINO PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list
                         | CONDICIONAL_CONTRARIO DOS_PUNTOS statement_list'''
-    p[0] = p[3]
+    if len(p) == 8:
+        if p[3]:
+            p[0] = p[6]
+        else:
+            p[0] = p[7]
+    elif len(p) == 6:
+        if p[3]:
+            p[0] = p[5]
+        else:
+            p[0] = None
+    elif len(p) == 4:
+        p[0] = p[3]
 
 def p_loop_while(p):
     '''loop_while : CICLO_WHILE PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list'''
@@ -169,7 +190,7 @@ def eval_statement(stmt):
             for s in stmt:
                 eval_statement(s)
         else:
-            exec(stmt)
+            exec(stmt, globals(), variables)
 
 # Construir el parser
 parser = yacc.yacc()
