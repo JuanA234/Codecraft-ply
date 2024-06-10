@@ -1,28 +1,53 @@
 from tests.lexico import lexer
-from tests.sintax import parser
+from tests.sintax import parser, variables
 
 source_code = '''
-bloque variable1;
-hiloRedstone cadena = "Esto es una prueba";
-pasoHelado valor = 10.5;
-booleanman flag = verdadero;
+bloque numero1 = 7;
+bloque numero2 = 5;
+bloque suma = numero1 + numero2;
+hiloRedstone sumastring = "La suma de los numeros es: " + suma;
 
-si (variable1 == 10) {
-    variable1 = 20;
-    minarPara (i = 0; i < 10; i++) {
-        flag = falso;
-    }
-} sino {
-    variable1 = 30;
-}
+booleanman comprobacion = False; 
+
+si (suma > 10): 
+    comprobacion = True;
+
+mientrasNoDiamante(comprobacion != True):  
+    suma = suma + 1;
+    si (suma > 10):
+        comprobacion = True;
+'''
+
+source_code2 = '''
+pasoHelado decimal1 = 1.13; 
+pasoHelado decimal2 = 7.14;
+pasoHelado sumaDecimal = decimal1 + decimal2;
+bloque numerin = 0;
+
+si (sumaDecimal > 5):
+    numerin = 1;
+sino (sumaDecimal = 5):
+    numerin = 2;
+contrario:
+    numerin = 3;
+
+bloque sumaFor = 0;
+minarPara i in range(5):
+    sumaFor = sumaFor + i;
 '''
 
 # Ejecutar el lexer
-lexer.input(source_code)
+
+'''lexer.input(source_code)
 print("Tokens:")
 for token in lexer:
-    print(token)
+    print(token)'''
+
+
+
+
+data = "3 + 4 * (2 - 1)"
 
 # Ejecutar el parser
-print("\nParsing:")
-parser.parse(source_code)
+print(parser.parse(source_code2))
+print(variables)

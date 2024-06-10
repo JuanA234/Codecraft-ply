@@ -1,81 +1,169 @@
 import ply.yacc as yacc
 from tests.lexico import tokens
 
-# Reglas gramaticales
+# Entorno de variables
+variables = {}
+
+# Definir la precedencia de los operadores
+precedence = (
+    ('left', 'SUMA', 'RESTA'),
+    ('left', 'MULTIPLICACION', 'DIVISION'),
+    ('left', 'MENOR_QUE', 'MAYOR_QUE', 'MENOR_O_IGUAL', 'MAYOR_O_IGUAL'),
+    ('left', 'IGUALDAD', 'DIFERENTE'),
+    ('left', 'AND', 'OR'),
+    ('right', 'NOT'),
+)
+
+# Reglas de la gramática
 def p_program(p):
     '''program : statement_list'''
-    print("Program")
-
-def p_statement_list(p):
-    '''statement_list : statement_list statement
-                      | statement'''
-    pass
-
-def p_statement(p):
-    '''statement : declaracion
-                 | asignacion
-                 | condicional
-                 | ciclo_for
-                 | ciclo_while'''
-    pass
-
-def p_declaracion(p):
-    '''declaracion : DECLARACION_ENTERO IDENTIFICADOR FIN_SENTENCIA
-                   | DECLARACION_STRING IDENTIFICADOR FIN_SENTENCIA
-                   | DECLARACION_FLOAT IDENTIFICADOR FIN_SENTENCIA
-                   | DECLARACION_BOOLEAN IDENTIFICADOR FIN_SENTENCIA'''
-    print(f"Declaración: {p[1]} {p[2]}")
-
-def p_asignacion(p):
-    '''asignacion : IDENTIFICADOR OPERADOR expresion FIN_SENTENCIA'''
-    print(f"Asignación: {p[1]} {p[2]} {p[3]}")
-
-def p_condicional(p):
-    '''condicional : CONDICIONAL_SI '(' expresion ')' bloque
-                   | CONDICIONAL_SI '(' expresion ')' bloque CONDICIONAL_SINO bloque
-                   | CONDICIONAL_SI '(' expresion ')' bloque CONDICIONAL_CONTRARIO bloque'''
-    print("Condicional")
-
-def p_ciclo_for(p):
-    '''ciclo_for : CICLO_FOR '(' asignacion expresion FIN_SENTENCIA asignacion ')' bloque'''
-    print("Ciclo for")
-
-def p_ciclo_while(p):
-    '''ciclo_while : CICLO_WHILE '(' expresion ')' bloque'''
-    print("Ciclo while")
-
-def p_expresion(p):
-    '''expresion : ENTERO
-                 | FLOTANTE
-                 | CADENA
-                 | IDENTIFICADOR'''
     p[0] = p[1]
 
-def p_bloque(p):
-    '''bloque : '{' statement_list '}' '''
-    pass
+def p_statement_list(p):
+    '''statement_list : statement
+                      | statement_list statement'''
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1] + [p[2]]
+
+def p_statement(p):
+    '''statement : declaration
+                 | assignment
+                 | conditional
+                 | loop
+                 | expression FIN_SENTENCIA'''
+    p[0] = p[1]
+
+def p_declaration(p):
+    '''declaration : DECLARACION_ENTERO IDENTIFICADOR IGUAL expression FIN_SENTENCIA
+                   | DECLARACION_STRING IDENTIFICADOR IGUAL expression FIN_SENTENCIA
+                   | DECLARACION_FLOAT IDENTIFICADOR IGUAL expression FIN_SENTENCIA
+                   | DECLARACION_BOOLEAN IDENTIFICADOR IGUAL expression FIN_SENTENCIA'''
+    variables[p[2]] = p[4]
+    p[0] = None
+
+def p_assignment(p):
+    '''assignment : IDENTIFICADOR IGUAL expression FIN_SENTENCIA'''
+    if p[1] in variables:
+        variables[p[1]] = p[3]
+    else:
+        print(f"Error: Variable {p[1]} no declarada")
+    p[0] = None
+
+def p_conditional(p):
+    '''conditional : CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list
+                   | CONDICIONAL_SI PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list CONDICIONAL_SINO DOS_PUNTOS statement_list'''
+    if p[3]:
+        for stmt in p[6]:
+            eval_statement(stmt)
+    elif len(p) == 10:
+        for stmt in p[9]:
+            eval_statement(stmt)
+    p[0] = None
+
+def p_loop(p):
+    '''loop : CICLO_WHILE PAREN_IZQUIERDO expression PAREN_DERECHO DOS_PUNTOS statement_list'''
+    while p[3]:
+        for stmt in p[6]:
+            eval_statement(stmt)
+        p[3] = p[3]  # Re-evaluar la condición después de cada iteración
+    p[0] = None
+
+def p_expression_binop(p):
+    '''expression : expression SUMA expression
+                  | expression RESTA expression
+                  | expression MULTIPLICACION expression
+                  | expression DIVISION expression
+                  | expression MENOR_QUE expression
+                  | expression MAYOR_QUE expression
+                  | expression MENOR_O_IGUAL expression
+                  | expression MAYOR_O_IGUAL expression
+                  | expression IGUALDAD expression
+                  | expression DIFERENTE expression
+                  | expression AND expression
+                  | expression OR expression'''
+    if p[2] == '+':
+        if isinstance(p[1], str) or isinstance(p[3], str):
+            p[0] = str(p[1]) + str(p[3])
+        else:
+            p[0] = p[1] + p[3]
+    elif p[2] == '-':
+        p[0] = p[1] - p[3]
+    elif p[2] == '*':
+        p[0] = p[1] * p[3]
+    elif p[2] == '/':
+        p[0] = p[1] / p[3]
+    elif p[2] == '<':
+        p[0] = p[1] < p[3]
+    elif p[2] == '>':
+        p[0] = p[1] > p[3]
+    elif p[2] == '<=':
+        p[0] = p[1] <= p[3]
+    elif p[2] == '>=':
+        p[0] = p[1] >= p[3]
+    elif p[2] == '==':
+        p[0] = p[1] == p[3]
+    elif p[2] == '!=':
+        p[0] = p[1] != p[3]
+    elif p[2] == '&&':
+        p[0] = p[1] and p[3]
+    elif p[2] == '||':
+        p[0] = p[1] or p[3]
+
+def p_expression_not(p):
+    'expression : NOT expression'
+    p[0] = not p[2]
+
+def p_expression_group(p):
+    'expression : PAREN_IZQUIERDO expression PAREN_DERECHO'
+    p[0] = p[2]
+
+def p_expression_number(p):
+    '''expression : ENTERO
+                  | FLOTANTE'''
+    p[0] = p[1]
+
+def p_expression_string(p):
+    'expression : CADENA'
+    p[0] = p[1]
+
+def p_expression_identifier(p):
+    'expression : IDENTIFICADOR'
+    p[0] = variables.get(p[1], 0)  # Obtener el valor de la variable o 0 si no está definida
 
 def p_error(p):
-    print(f"Error de sintaxis en '{p.value}'")
+    print("Error de sintaxis en la entrada:", p)
 
-# Crear el parser
+def eval_statement(stmt):
+    if stmt is not None:
+        if isinstance(stmt, list):
+            for s in stmt:
+                eval_statement(s)
+        else:
+            eval(stmt)
+
+# Construir el parser
 parser = yacc.yacc()
 
-# Probar el parser (opcional)
-if __name__ == "__main__":
-    source_code = '''
-    bloque variable1;
-    hiloRedstone cadena = "Esto es una prueba";
-    pasoHelado valor = 10.5;
-    booleanman flag = verdadero;
+# Analizar una cadena de entrada
+data = '''
+pasoHelado numero1 = 7;
+pasoHelado numero2 = 5;
+pasoHelado suma = numero1 + numero2;
+hiloRedstone sumastring = "La suma de los numeros es: " + suma;
 
-    si (variable1 == 10) {
-        variable1 = 20;
-        minarPara (i = 0; i < 10; i++) {
-            flag = falso;
-        }
-    } sino {
-        variable1 = 30;
-    }
-    '''
-    parser.parse(source_code)
+booleanman comprobacion = False;
+
+si (suma > 10):
+    comprobacion = True;
+
+mientrasNoDiamante(comprobacion != True):
+    suma = suma + 1;
+    si (suma > 10):
+        comprobacion = True;
+'''
+
+#result = parser.parse(data)
+#print(result)
+#print(variables)  # Imprimir el entorno de variables para verificar los resultados

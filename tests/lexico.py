@@ -2,10 +2,31 @@ import ply.lex as lex
 
 # Lista de tokens
 tokens = [
-    'IDENTIFICADOR', 'ENTERO', 'FLOTANTE', 'CADENA',
-    'OPERADOR', 'FIN_SENTENCIA'
+    'SUMA',
+    'RESTA',
+    'MULTIPLICACION',
+    'DIVISION',
+    'IGUAL',
+    'MENOR_QUE',
+    'MAYOR_QUE',
+    'MENOR_O_IGUAL',
+    'MAYOR_O_IGUAL',
+    'IGUALDAD',
+    'DIFERENTE',
+    'AND',
+    'OR',
+    'NOT',
+    'PAREN_IZQUIERDO',
+    'PAREN_DERECHO',
+    'LLAVE_IZQUIERDA',
+    'LLAVE_DERECHA',
+    'DOS_PUNTOS',
+    'IDENTIFICADOR',
+    'ENTERO',
+    'FLOTANTE',
+    'CADENA',
+    'FIN_SENTENCIA'
 ]
-
 # Palabras reservadas
 reserved = {
     'bloque': 'DECLARACION_ENTERO',
@@ -17,24 +38,39 @@ reserved = {
     'contrario': 'CONDICIONAL_CONTRARIO',
     'minarPara': 'CICLO_FOR',
     'mientrasNoDiamante': 'CICLO_WHILE',
-    'picoRoto': 'RESERVADA_PICOROTO',
-    'seguirPicando': 'RESERVADA_SEGIRPICANDO',
-    'interruptor': 'OPERADOR_LOGICO_INT',
-    'puerta': 'OPERADOR_LOGICO_PUERTA',
-    'cierre': 'OPERADOR_LOGICO_CIERRE'
+    'picoRoto': 'ESTRUCTURA_BREAK',
+    'seguirPicando': 'ESTRUCTURA_CONTINUE'
 }
 
 tokens += list(reserved.values())
 
 # Expresiones regulares para tokens simples
-t_OPERADOR = r'[+\-*/=]'
+t_SUMA = r'\+'
+t_RESTA = r'-'
+t_MULTIPLICACION = r'\*'
+t_DIVISION = r'/'
+t_IGUAL = r'='
+t_MENOR_QUE = r'<'
+t_MAYOR_QUE = r'>'
+t_MENOR_O_IGUAL = r'<='
+t_MAYOR_O_IGUAL = r'>='
+t_IGUALDAD = r'=='
+t_DIFERENTE = r'!='
+t_AND = r'&&'
+t_OR = r'\|\|'
+t_NOT = r'!'
+t_PAREN_IZQUIERDO = r'\('
+t_PAREN_DERECHO = r'\)'
+t_LLAVE_IZQUIERDA = r'\{'
+t_LLAVE_DERECHA = r'\}'
+t_DOS_PUNTOS = r':'
 t_FIN_SENTENCIA = r';'
 
 # Ignorar espacios y tabs
 t_ignore = ' \t'
 
 def t_CADENA(t):
-    r'\"([^\\\n]|(\\.))*?\" | \'([^\\\n]|(\\.))*?\''
+    r'\"([^\\\n]|(\\.))*?\"|\'([^\\\n]|(\\.))*?\''
     return t
 
 def t_FLOTANTE(t):
@@ -62,22 +98,3 @@ def t_error(t):
 
 # Crear el lexer
 lexer = lex.lex()
-
-''''''
-# Probar el lexer (opcional)
-if __name__ == "__main__":
-    source_code = '''
-    bloque variable1;
-    hiloRedstone cadena = "Esto es una prueba";
-    si (variable1 == 10) {
-        pasoHelado valor = 10.5;
-        minarPara (i = 0; i < 10; i++) {
-            booleanman flag = verdadero;
-        }
-    }
-    '''
-    '''
-    lexer.input(source_code)
-    for token in lexer:
-        print(token)
-        '''
